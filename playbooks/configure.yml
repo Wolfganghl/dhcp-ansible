@@ -1,0 +1,87 @@
+- hosts: all
+  tasks:
+
+  - name: backup orginal interfaces file
+    command: mv /etc/network/interfaces /etc/network/interfaces.org
+
+  - name: create interfaces file for workaround
+    file:
+      path: /etc/network/interfaces
+      state: touch
+
+  - name:
+    lineinfile:
+      path: /etc/network/interfaces
+      line: '{{ item }}'
+    with_items:
+      - '# interfaces(5) file used by ifup(8) and ifdown(8)'
+      - 'auto lo'
+      - 'iface lo inet loopback'
+      - ''
+      - 'auto enp0s25'
+      - 'iface enp0s25'
+      - '  adress 10.0.0.1'
+      - '  netmask 255.255.255.0'
+      - '  dns-nameserver 8.8.8.8'
+      - ' '
+      - 'auto enx00e04c68004a'
+      - 'iface enx00e04c68004a'
+      - '  adress 192.168.178.83'
+      - '  netmask 255.255.255.0'
+      - '  gateway 192.169.178.1'
+      - '  dns-nameserver 8.8.8.8'
+
+  - name: backup orginal dhcps.conf file
+    command: mv /etc/dhcp/dhcpd.conf /etc/dhcp/dhcpd.conf.org
+
+  - name: create dhcp.conf file for workaround
+    file:
+      path: /etc/dhcp/dhcpd.conf
+      state: touch
+
+  - name:
+    lineinfile:
+      path: /etc/dhcp/dhcpd.conf
+      line: '{{ item }}'
+    with_items:
+      - '# If this DHCP server is the official DHCP server for the local'
+      - ' # network, the authoritative directive should be uncommented.'
+      - 'authoritative;'
+      - ''
+      - '# Use this to send dhcp log messages to a different log file (you also'
+      - '# have to hack syslog.conf to complete the redirection).'
+      - 'log-facility local7;'
+      - ''
+      - 'subnet 10.0.0.0 netmask 255.255.255.224 {'
+      - '  range 10.0.0.20 10.0.0.30;'
+      - '  option domain-name-servers 8.8.8.8;'
+      - '  option subnet-mask 255.255.255.224;'
+      - '  option routers 10.0.0.1;'
+      - '  option broadcast-address 10.0.0.255;'
+      - '  default-lease-time 600;'
+      - '  max-lease-time 7200;'
+      - '}'
+
+  - name: backup orginal isc-dhcp-server file
+    command: mv /etc/default/isc-dhcp-server /etc/default/isc-dhcp-server.org
+
+  - name: create isc-dhcp-server file for workaround
+    file:
+      path: /etc/default/isc-dhcp-server
+      state: touch
+
+  - name: edit file
+    lineinfile:
+      path: /etc/default/isc-dhcp-server
+      line: '{{ item }}'
+    with_items:
+      - 'INTERFACESv4="enp0s25"'
+      - 'INTERFACESv6=""'
+
+  - name: start interface
+    cmd: ifconfig enp0s25 10.0.0.1
+
+  - name: Restart isc-dhcp-server
+    service:
+      name: isc-dhcp-server
+      state: restarted
