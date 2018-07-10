@@ -79,7 +79,7 @@
       - 'INTERFACESv6=""'
 
   - name: start interface
-    raw: ifconfig enp0s25 10.0.0.1
+    shell: ifconfig enp0s25 10.0.0.1
 
   - name: Restart isc-dhcp-server
     service:
