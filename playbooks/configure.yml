@@ -18,17 +18,17 @@
       - 'auto lo'
       - 'iface lo inet loopback'
       - ''
-      - 'auto enp0s25'
-      - 'iface enp0s25'
+      - 'auto {{outtake_interface}}'
+      - 'iface {{outtake_interface}}'
       - '  adress 10.0.0.1'
       - '  netmask 255.255.255.0'
       - '  dns-nameserver 8.8.8.8'
       - ' '
-      - 'auto enx00e04c68004a'
-      - 'iface enx00e04c68004a'
-      - '  adress 192.168.178.83'
+      - 'auto {{intake_interface}}'
+      - 'iface {{intake_interface}}'
+      - '  adress *.*.*.*'
       - '  netmask 255.255.255.0'
-      - '  gateway 192.169.178.1'
+      - '  gateway *.*.*.*'
       - '  dns-nameserver 8.8.8.8'
 
   - name: backup orginal dhcps.conf file
@@ -53,7 +53,7 @@
       - 'log-facility local7;'
       - ''
       - 'subnet 10.0.0.0 netmask 255.255.255.224 {'
-      - '  range 10.0.0.20 10.0.0.30;'
+      - '  range 10.0.0.20 10.0.0.100;'
       - '  option domain-name-servers 8.8.8.8;'
       - '  option subnet-mask 255.255.255.224;'
       - '  option routers 10.0.0.1;'
@@ -75,11 +75,11 @@
       path: /etc/default/isc-dhcp-server
       line: '{{ item }}'
     with_items:
-      - 'INTERFACESv4="enp0s25"'
+      - 'INTERFACESv4="{{outtake_interface}}"'
       - 'INTERFACESv6=""'
 
   - name: start interface
-    shell: ifconfig enp0s25 10.0.0.1
+    shell: ifconfig {{outtake_interface}} 10.0.0.1
 
   - name: Restart isc-dhcp-server
     service:
